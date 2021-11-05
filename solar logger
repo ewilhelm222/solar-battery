@@ -10,7 +10,9 @@
 int led = D6;
 int boardLed = D7;
 int battery = A0;
-unsigned long ADC = 0;
+int relay = A1;
+unsigned long ADC0 = 0;
+int ADC1;
 double voltage;
 int now;
 const int numberOfReads = 10;
@@ -34,7 +36,10 @@ void setup()
 void loop()
 {
 	if (timeToRead) {
-	    ADC = analogRead(battery) + ADC;
+	    // Read the voltage and add it to the running total to be divided by numberOFReads later
+	    ADC0 = analogRead(battery) + ADC0;
+	    // Read the voltage on the relay 
+	    ADC1 = analogRead(relay);
 	    readNumber++;
 	    timeToRead = false;
 	}
@@ -47,14 +52,14 @@ void loop()
 	if (readNumber == numberOfReads) {
 	    //average the voltage readings by dividing by the numberOfReads and multiply by the ADC to voltage factor of 0.0156
 	    // ADC is 0 to 4095 of 3.3 v; 1.1 kOhm / 20 KOhm voltage divider
-	    voltage = (double)ADC*0.01560/(double)numberOfReads;
+	    voltage = (double)ADC0*0.01560/(double)numberOfReads;
 	    // Publish to Particle
 	    Particle.publish("Voltage", String::format("%.1f", voltage));
+	    //Particle.publish("Relay", String(ADC1));
 	    // reset readNumber and reset ADC
 	    readNumber = 0;
-	    ADC = 0;
+	    ADC0 = 0;
 	}
 	 
 	
 }
-
